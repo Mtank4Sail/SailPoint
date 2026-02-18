@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ramadan Quran Tracker 1446</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --deep: #0D1B2A;
+    --deep2: #152236;
+    --teal: #1A6B72;
+    --teal-light: #22919A;
+    --emerald: #2ECC71;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(201,168,76,0.25);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--deep);
+    color: #fff;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(26,107,114,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.2) 0%, transparent 60%);
+    padding-bottom: 40px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 36px 20px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '☽';
+    position: absolute;
+    top: -10px; right: 10px;
+    font-size: 100px;
+    color: rgba(201,168,76,0.06);
+    line-height: 1;
+  }
+  .arabic-title {
+    font-family: 'Amiri', serif;
+    font-size: clamp(22px, 6vw, 36px);
+    color: var(--gold-light);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .sub-title {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .day-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--teal), var(--teal-light));
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  /* OVERALL PROGRESS */
+  .group-progress {
+    margin: 8px 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    backdrop-filter: blur(10px);
+  }
+  .group-progress h3 {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 10px;
+  }
+  .group-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .group-stat .big-num {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gold-light);
+    font-variant-numeric: tabular-nums;
+  }
+  .group-stat .of {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+  }
+  .group-stat .pct {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--emerald);
+  }
+  .master-bar-wrap {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    height: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+  .master-bar {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--teal), var(--gold));
+    transition: width 0.7s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+  }
+  .master-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer { to { left: 140%; } }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  /* FRIEND CARD */
+  .friend-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+  }
+  .friend-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .friend-card:active { transform: scale(0.97); }
+  .friend-card.complete { border-color: rgba(46,204,113,0.4); }
+  .friend-card.complete::before { background: var(--emerald); }
+
+  .friend-emoji { font-size: 26px; margin-bottom: 6px; display: block; }
+  .friend-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .friend-pages {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 10px;
+  }
+  .friend-pages span {
+    color: var(--gold-light);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .bar-wrap {
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--teal-light), var(--gold));
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-fill.complete { background: linear-gradient(90deg, #1eb85a, #2ECC71); }
+  .friend-pct {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+    text-align: right;
+  }
+  .crown { position: absolute; top: 10px; right: 10px; font-size: 14px; }
+
+  /* MODAL */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #1a2d42;
+    border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-name {
+    font-family: 'Amiri', serif;
+    font-size: 24px;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .modal-sub {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 24px;
+  }
+
+  /* INPUT SECTION */
+  .input-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .juz-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .juz-btn {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .juz-btn:active { transform: scale(0.92); }
+  .juz-btn.done {
+    background: linear-gradient(135deg, var(--teal), var(--teal-light));
+    border-color: var(--teal-light);
+    color: #fff;
+  }
+  .juz-btn.all30 {
+    background: linear-gradient(135deg, #1eb85a, #2ECC71);
+    border-color: #2ECC71;
+    color: #fff;
+  }
+
+  .page-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .page-input-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: #fff;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .page-input-row input:focus { border-color: var(--gold); }
+  .page-input-row input::placeholder { color: rgba(255,255,255,0.25); }
+
+  .btn-save {
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--teal), var(--teal-light));
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 10px;
+  }
+  .btn-save:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-close {
+    width: 100%;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* SHARE BUTTON */
+  .share-row {
+    padding: 16px 12px 0;
+    display: flex;
+    justify-content: center;
+  }
+  .btn-reset {
+    padding: 14px 32px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.5);
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* PIN MODAL */
+  .pin-modal {
+    background: #1a2d42;
+    border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  .pin-title {
+    font-family: 'Amiri', serif;
+    font-size: 20px;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .pin-sub {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 22px;
+  }
+  .pin-input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: #fff;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .pin-input:focus { border-color: var(--gold); }
+  .pin-input::placeholder { color: rgba(255,255,255,0.25); }
+  .pin-error {
+    text-align: center;
+    color: #e74c3c;
+    font-size: 12px;
+    margin-bottom: 10px;
+    min-height: 18px;
+  }
+  .btn-pin-confirm {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .btn-pin-cancel {
+    width: 100%;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #25D366;
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .leaderboard-note {
+    text-align: center;
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 16px;
+    letter-spacing: 1px;
+  }
+
+  .dua-text {
+    text-align: center;
+    font-family: 'Amiri', serif;
+    color: rgba(201,168,76,0.5);
+    font-size: 16px;
+    margin: 14px 16px 0;
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="arabic-title">تتبع قراءة القرآن الكريم</div>
+  <div class="sub-title">Ramadan 1446 · Group Quran Tracker</div>
+  <div class="day-badge" id="day-badge">Day 1 of 30</div>
+</div>
+
+<div class="group-progress">
+  <h3>Group Total Progress</h3>
+  <div class="group-stat">
+    <div>
+      <div class="big-num" id="total-pages">0</div>
+      <div class="of">pages read · <span id="total-juz">0</span> juz complete</div>
+    </div>
+    <div class="pct" id="group-pct">0%</div>
+  </div>
+  <div class="master-bar-wrap">
+    <div class="master-bar" id="master-bar" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="grid" id="friends-grid"></div>
+
+<div class="share-row">
+  <button class="btn-reset" onclick="confirmReset()">🔒 Reset All Progress</button>
+</div>
+
+<div class="dua-text">رَمَضَانُ شَهْرُ الْقُرْآنِ</div>
+<div class="leaderboard-note">👑 Crown = Group Leader · Tap a name to update progress</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-name" id="modal-name"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+
+    <label class="input-label">Quick Select — Juz Complete</label>
+    <div class="juz-grid" id="juz-grid"></div>
+
+    <label class="input-label">Or enter pages read manually</label>
+    <div class="page-input-row">
+      <input type="number" id="page-input" placeholder="e.g. 250" min="0" max="604" inputmode="numeric">
+    </div>
+
+    <button class="btn-save" onclick="saveProgress()">✓ Save Progress</button>
+    <button class="btn-close" onclick="closeModalDirect()">Cancel</button>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="overlay" id="pin-overlay" onclick="closePinModal(event)">
+  <div class="pin-modal">
+    <div class="modal-handle"></div>
+    <div class="pin-title">🔒 Admin Access</div>
+    <div class="pin-sub">Only Abdul Muqeet can reset progress</div>
+    <input type="password" class="pin-input" id="pin-input" placeholder="Enter password" autocomplete="off" onkeydown="if(event.key==='Enter') verifyPin()">
+    <div class="pin-error" id="pin-error"></div>
+    <button class="btn-pin-confirm" onclick="verifyPin()">Confirm Reset</button>
+    <button class="btn-pin-cancel" onclick="closePinModalDirect()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TOTAL_PAGES = 604;
+const PAGES_PER_JUZ = Math.round(TOTAL_PAGES / 30); // ~20
+
+const DEFAULT_FRIENDS = [
+  { name: "Abdul Muqeet",            emoji: "📖" },
+  { name: "Amair Bhai",              emoji: "📖" },
+  { name: "Shujahath Bhai",          emoji: "📖" },
+  { name: "Nauman Bhai",             emoji: "📖" },
+  { name: "Imdaad Bhai",             emoji: "📖" },
+  { name: "Sadiq Bhai",              emoji: "📖" },
+  { name: "Haroon Bhai (Khan Saab)", emoji: "📖" },
+  { name: "Umair Bhai",              emoji: "📖" },
+];
+
+let friends = [];
+let activeIdx = null;
+
+function load() {
+  const saved = localStorage.getItem('ramadan_tracker_2025');
+  if (saved) {
+    try { friends = JSON.parse(saved); } catch(e) { friends = DEFAULT_FRIENDS.map(f => ({...f, pages: 0})); }
+  } else {
+    friends = DEFAULT_FRIENDS.map(f => ({...f, pages: 0}));
+  }
+  // Ensure all fields present
+  friends = friends.map((f,i) => ({
+    emoji: DEFAULT_FRIENDS[i]?.emoji || '📖',
+    name: DEFAULT_FRIENDS[i]?.name || f.name || 'Friend '+(i+1),
+    pages: f.pages || 0
+  }));
+}
+
+function save() {
+  localStorage.setItem('ramadan_tracker_2025', JSON.stringify(friends));
+}
+
+function getDayOfRamadan() {
+  // Just show based on actual date range or default to day 1
+  // Ramadan 2025 approx March 1 - March 30
+  const start = new Date('2025-03-01');
+  const now = new Date();
+  const diff = Math.floor((now - start) / 86400000) + 1;
+  return Math.min(Math.max(diff, 1), 30);
+}
+
+function render() {
+  const day = getDayOfRamadan();
+  document.getElementById('day-badge').textContent = `Day ${day} of 30`;
+
+  const totalPages = friends.reduce((s,f) => s + f.pages, 0);
+  const maxPossible = TOTAL_PAGES * friends.length;
+  const groupPct = Math.round((totalPages / maxPossible) * 100);
+  const totalJuz = Math.floor(totalPages / PAGES_PER_JUZ);
+
+  document.getElementById('total-pages').textContent = totalPages.toLocaleString();
+  document.getElementById('total-juz').textContent = totalJuz;
+  document.getElementById('group-pct').textContent = groupPct + '%';
+  document.getElementById('master-bar').style.width = groupPct + '%';
+
+  // find leader
+  const maxPages = Math.max(...friends.map(f => f.pages));
+
+  const grid = document.getElementById('friends-grid');
+  grid.innerHTML = '';
+  friends.forEach((f, i) => {
+    const pct = Math.min(Math.round((f.pages / TOTAL_PAGES) * 100), 100);
+    const complete = f.pages >= TOTAL_PAGES;
+    const isLeader = f.pages === maxPages && f.pages > 0;
+    const juzDone = Math.floor(f.pages / PAGES_PER_JUZ);
+
+    const card = document.createElement('div');
+    card.className = 'friend-card' + (complete ? ' complete' : '');
+    card.onclick = () => openModal(i);
+    card.innerHTML = `
+      ${isLeader ? '<div class="crown">👑</div>' : ''}
+      <span class="friend-emoji">${f.emoji}</span>
+      <div class="friend-name">${f.name}</div>
+      <div class="friend-pages"><span>${f.pages}</span> / ${TOTAL_PAGES} pages</div>
+      <div class="bar-wrap"><div class="bar-fill ${complete?'complete':''}" style="width:${pct}%"></div></div>
+      <div class="friend-pct">${juzDone} juz · ${pct}%${complete?' ✓':''}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function openModal(idx) {
+  activeIdx = idx;
+  const f = friends[idx];
+  document.getElementById('modal-name').textContent = f.emoji + ' ' + f.name;
+  document.getElementById('modal-sub').textContent = `${f.pages} pages read so far (${Math.round(f.pages/TOTAL_PAGES*100)}% complete)`;
+  document.getElementById('page-input').value = f.pages || '';
+
+  // Build juz grid
+  const grid = document.getElementById('juz-grid');
+  grid.innerHTML = '';
+  const currentJuz = Math.floor(f.pages / PAGES_PER_JUZ);
+  for (let j = 1; j <= 30; j++) {
+    const btn = document.createElement('button');
+    btn.className = 'juz-btn' + (j <= currentJuz ? (j===30?' all30':' done') : '');
+    btn.textContent = j;
+    btn.onclick = () => selectJuz(j);
+    grid.appendChild(btn);
+  }
+
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(() => document.getElementById('page-input').focus(), 300);
+}
+
+function selectJuz(j) {
+  const pages = Math.min(j * PAGES_PER_JUZ, TOTAL_PAGES);
+  document.getElementById('page-input').value = pages;
+  // Update juz highlight
+  const btns = document.querySelectorAll('.juz-btn');
+  btns.forEach((btn, i) => {
+    btn.className = 'juz-btn' + ((i+1) <= j ? ((i+1)===30?' all30':' done') : '');
+  });
+}
+
+function saveProgress() {
+  if (activeIdx === null) return;
+  const val = parseInt(document.getElementById('page-input').value) || 0;
+  const pages = Math.min(Math.max(val, 0), TOTAL_PAGES);
+  friends[activeIdx].pages = pages;
+  save();
+  render();
+  closeModalDirect();
+  showToast('✓ Progress saved for ' + friends[activeIdx].name);
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('overlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('overlay').classList.remove('show');
+  activeIdx = null;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function confirmReset() {
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('pin-input').focus(), 300);
+}
+
+function verifyPin() {
+  const entered = document.getElementById('pin-input').value;
+  if (entered === 'Muqeet@123') {
+    friends = friends.map(f => ({...f, pages: 0}));
+    save();
+    render();
+    closePinModalDirect();
+    showToast('✓ All progress has been reset');
+  } else {
+    document.getElementById('pin-error').textContent = '❌ Incorrect password. Only Abdul Muqeet can reset.';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
+  }
+}
+
+function closePinModal(e) {
+  if (e.target === document.getElementById('pin-overlay')) closePinModalDirect();
+}
+function closePinModalDirect() {
+  document.getElementById('pin-overlay').classList.remove('show');
+}
+
+// Init
+load();
+render();
+</script>
+</body>
+</html>
